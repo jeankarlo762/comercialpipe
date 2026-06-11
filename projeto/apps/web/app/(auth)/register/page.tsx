@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -53,7 +53,7 @@ export default function RegisterPage() {
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2 text-primary">
           <Sparkles className="h-6 w-6" />
-          <span className="text-xl font-bold tracking-tight text-foreground">CommercialPipe</span>
+          <span className="text-xl font-bold tracking-tight text-foreground">CRM NX</span>
         </div>
         <CardTitle>Criar workspace</CardTitle>
         <CardDescription>Configure sua empresa e o usuário administrador</CardDescription>
@@ -74,7 +74,7 @@ export default function RegisterPage() {
             <Label htmlFor="slug">Subdomínio</Label>
             <div className="flex items-center gap-2">
               <Input id="slug" required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="acme" />
-              <span className="text-sm text-muted-foreground">.commercialpipe.com</span>
+              <span className="text-sm text-muted-foreground">.CRM NX.com</span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">

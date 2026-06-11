@@ -1,4 +1,4 @@
-import type { FastifyRequest } from 'fastify';
+﻿import type { FastifyRequest } from 'fastify';
 import type { AuthUser } from '@commercialpipe/shared-types';
 import { UnauthorizedError } from '../errors/app-error.js';
 import type { AuditContext } from '../audit/audit.service.js';

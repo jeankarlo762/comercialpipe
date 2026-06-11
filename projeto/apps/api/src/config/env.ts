@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+﻿import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 
@@ -43,7 +43,7 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().default('no-reply@commercialpipe.com'),
+  SMTP_FROM: z.string().default('no-reply@crmnx.com'),
   COOKIE_DOMAIN: z.string().default('localhost'),
   COOKIE_SECURE: z
     .enum(['true', 'false'])

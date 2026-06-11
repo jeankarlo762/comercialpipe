@@ -1,4 +1,4 @@
-import type { FastifyReply } from 'fastify';
+﻿import type { FastifyReply } from 'fastify';
 import type { PaginationMeta } from '@commercialpipe/shared-types';
 
 export function sendOk<T>(reply: FastifyReply, data: T, status = 200): FastifyReply {

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/20 ring-1 ring-amber-400/30">
             <BarChart3 className="h-5 w-5 text-amber-400" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-white">CommercialPipe</span>
+          <span className="text-2xl font-bold tracking-tight text-white">CRM NX</span>
         </div>
 
         {/* Growth chart SVG */}
@@ -147,7 +147,7 @@ export default function LoginPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400">
             <BarChart3 className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight">CommercialPipe</span>
+          <span className="text-xl font-bold tracking-tight">CRM NX</span>
         </div>
 
         <div className="w-full max-w-sm space-y-8">

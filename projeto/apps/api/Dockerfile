@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+﻿# syntax=docker/dockerfile:1
 FROM node:22-alpine AS base
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
@@ -10,8 +10,8 @@ COPY apps/api/package.json apps/api/
 RUN npm install
 COPY packages/shared-types packages/shared-types
 COPY apps/api apps/api
-RUN npm run build --workspace=@commercialpipe/shared-types \
-  && npm run build --workspace=@commercialpipe/api
+RUN npm run build --workspace=@CRM NX/shared-types \
+  && npm run build --workspace=@CRM NX/api
 
 FROM base AS runtime
 ENV NODE_ENV=production

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500">
             <BarChart3 className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight">CommercialPipe</span>
+          <span className="text-xl font-bold tracking-tight">CRM NX</span>
         </div>
 
         {sent ? (

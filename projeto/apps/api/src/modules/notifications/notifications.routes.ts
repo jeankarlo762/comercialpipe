@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+﻿import type { FastifyInstance } from 'fastify';
 import { buildPaginationMeta, listNotificationsQuerySchema } from '@commercialpipe/shared-types';
 import { authenticate } from '../../shared/middleware/auth.middleware.js';
 import { parseOrThrow } from '../../shared/http/validate.js';

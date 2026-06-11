@@ -1,4 +1,4 @@
-# CommercialPipe — CRM Comercial B2B com IA e n8n
+﻿# CRM NX — CRM Comercial B2B com IA e n8n
 
 Monorepo (Turborepo) de um CRM comercial B2B multi-tenant com pipeline Kanban,
 scoring preditivo por IA (Claude), motor de automações e integração bidirecional com n8n.
@@ -55,20 +55,20 @@ cp .env.example apps/api/.env
 
 ```bash
 npm install                                   # instala todo o workspace
-npm run build --workspace=@commercialpipe/shared-types
+npm run build --workspace=@CRM NX/shared-types
 
 # Migrar o banco
-npm run db:migrate --workspace=@commercialpipe/api   # aplica drizzle/0000_init.sql
-npm run db:seed    --workspace=@commercialpipe/api   # tenant demo: admin@acme.com / changeme123 (slug acme)
+npm run db:migrate --workspace=@CRM NX/api   # aplica drizzle/0000_init.sql
+npm run db:seed    --workspace=@CRM NX/api   # tenant demo: admin@acme.com / changeme123 (slug acme)
 
 # Subir a API (em dev os workers BullMQ rodam no mesmo processo)
-npm run dev --workspace=@commercialpipe/api          # http://localhost:3001/health
+npm run dev --workspace=@CRM NX/api          # http://localhost:3001/health
 
 # Em produção, rode os workers separados:
-npm run worker --workspace=@commercialpipe/api
+npm run worker --workspace=@CRM NX/api
 
 # Frontend (Next.js) — em outro terminal
-npm run dev --workspace=@commercialpipe/web          # http://localhost:3000
+npm run dev --workspace=@CRM NX/web          # http://localhost:3000
 ```
 
 O frontend lê `NEXT_PUBLIC_API_URL` (padrão `http://localhost:3001`). Faça login com o

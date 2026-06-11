@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from 'fastify';
+﻿import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -76,7 +76,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     sendError(reply, 404, 'ROUTE_NOT_FOUND', `Rota ${request.method} ${request.url} não existe`),
   );
 
-  app.get('/health', async () => ({ success: true, data: { status: 'ok', service: 'commercialpipe-api' } }));
+  app.get('/health', async () => ({ success: true, data: { status: 'ok', service: 'CRM NX-api' } }));
 
   await app.register(
     async (v1) => {

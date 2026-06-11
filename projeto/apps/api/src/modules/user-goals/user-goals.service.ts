@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+﻿import { and, eq, sql } from 'drizzle-orm';
 import type { ListGoalsQuery, UpsertGoalInput } from '@commercialpipe/shared-types';
 import { db } from '../../shared/database/client.js';
 import { leads, meetings, userGoals, users } from '../../shared/database/schema.js';

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, max } from 'drizzle-orm';
+﻿import { and, asc, eq, inArray, max } from 'drizzle-orm';
 import type { CreatePipelineInput, UpdatePipelineInput } from '@commercialpipe/shared-types';
 import { db } from '../../shared/database/client.js';
 import { leads, pipelines, pipelineStages } from '../../shared/database/schema.js';

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
@@ -19,7 +19,7 @@ export function Topbar() {
 
   return (
     <header className="flex h-16 items-center justify-between gap-4 border-b bg-card/40 px-4 md:px-6">
-      <div className="md:hidden text-lg font-bold text-primary">CommercialPipe</div>
+      <div className="md:hidden text-lg font-bold text-primary">CRM NX</div>
       <div className="flex flex-1 items-center justify-end gap-3">
         <NotificationBell />
         <ThemeToggle />

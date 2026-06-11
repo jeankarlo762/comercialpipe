@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+﻿# syntax=docker/dockerfile:1
 FROM node:22-alpine AS base
 WORKDIR /app
 
@@ -10,8 +10,8 @@ COPY apps/web/package.json apps/web/
 RUN npm install
 COPY packages/shared-types packages/shared-types
 COPY apps/web apps/web
-RUN npm run build --workspace=@commercialpipe/shared-types \
-  && npm run build --workspace=@commercialpipe/web
+RUN npm run build --workspace=@CRM NX/shared-types \
+  && npm run build --workspace=@CRM NX/web
 
 FROM base AS runtime
 ENV NODE_ENV=production

@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+﻿import nodemailer from 'nodemailer';
 import { env } from '../../config/env.js';
 
 function createTransport() {
@@ -25,12 +25,12 @@ export async function sendPasswordResetEmail(to: string, rawToken: string): Prom
   await transport.sendMail({
     from: env.SMTP_FROM,
     to,
-    subject: 'Redefinição de senha — CommercialPipe',
+    subject: 'Redefinição de senha — CRM NX',
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
         <h2 style="margin:0 0 8px;font-size:20px">Redefinir sua senha</h2>
         <p style="color:#555;margin:0 0 24px">
-          Recebemos uma solicitação para redefinir a senha da sua conta CommercialPipe.
+          Recebemos uma solicitação para redefinir a senha da sua conta CRM NX.
           Clique no botão abaixo para criar uma nova senha. O link expira em 1 hora.
         </p>
         <a href="${resetUrl}"

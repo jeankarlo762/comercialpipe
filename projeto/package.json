@@ -1,8 +1,8 @@
-{
-  "name": "commercialpipe",
+﻿{
+  "name": "CRM NX",
   "version": "0.1.0",
   "private": true,
-  "description": "CommercialPipe — CRM Comercial B2B com IA e n8n",
+  "description": "CRM NX — CRM Comercial B2B com IA e n8n",
   "packageManager": "npm@10.9.3",
   "workspaces": [
     "apps/*",
@@ -14,9 +14,9 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:generate": "npm run db:generate --workspace=@commercialpipe/api",
-    "db:migrate": "npm run db:migrate --workspace=@commercialpipe/api",
-    "db:push": "npm run db:push --workspace=@commercialpipe/api"
+    "db:generate": "npm run db:generate --workspace=@CRM NX/api",
+    "db:migrate": "npm run db:migrate --workspace=@CRM NX/api",
+    "db:push": "npm run db:push --workspace=@CRM NX/api"
   },
   "devDependencies": {
     "turbo": "^2.3.3",
