@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarRange, ChevronDown, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiGet, apiPatch, ApiError } from '@/lib/api';
+import { GripVertical } from 'lucide-react';
 import type { Lead, Stage } from '@/lib/types';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -97,10 +98,15 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
   });
 
   const [columns, setColumns] = useState<Columns>({});
+  const [stageOrder, setStageOrder] = useState<Stage[]>(stages);
 
   useEffect(() => {
     if (leads) setColumns(group(stages, leads));
   }, [leads, stages]);
+
+  useEffect(() => {
+    setStageOrder(stages);
+  }, [stages]);
 
   const totals = useMemo(() => {
     const map: Record<string, { count: number; value: number }> = {};
@@ -125,9 +131,26 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
   }
 
   async function onDragEnd(result: DropResult) {
-    const { source, destination, draggableId } = result;
+    const { source, destination, draggableId, type } = result;
     if (!destination) return;
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    if (type === 'COLUMN') {
+      const newOrder = Array.from(stageOrder);
+      const [moved] = newOrder.splice(source.index, 1);
+      newOrder.splice(destination.index, 0, moved);
+      setStageOrder(newOrder);
+      try {
+        await apiPatch('/pipeline/stages/reorder', {
+          order: newOrder.map((s, i) => ({ id: s.id, orderIndex: i })),
+        });
+        await queryClient.invalidateQueries({ queryKey: ['stages'] });
+      } catch {
+        setStageOrder(stages);
+        toast.error('Falha ao reordenar colunas');
+      }
+      return;
+    }
 
     const sourceItems = Array.from(columns[source.droppableId] ?? []);
     const [moved] = sourceItems.splice(source.index, 1);
@@ -145,7 +168,7 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
     if (source.droppableId !== destination.droppableId) {
       try {
         await apiPatch(`/leads/${draggableId}/stage`, { stageId: destination.droppableId });
-        const stage = stages.find((s) => s.id === destination.droppableId);
+        const stage = stageOrder.find((s) => s.id === destination.droppableId);
         toast.success(`Movido para "${stage?.name}"`);
         await queryClient.invalidateQueries({ queryKey: ['leads'] });
       } catch (err) {
@@ -255,49 +278,76 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex flex-1 gap-4 overflow-x-auto pb-4 scrollbar-thin">
-          {stages.map((stage) => (
-            <div key={stage.id} className="flex w-72 shrink-0 flex-col rounded-lg bg-muted/40">
-              <div className="flex items-center justify-between border-b px-3 py-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                  <span className="text-sm font-semibold">{stage.name}</span>
-                  <span className="rounded-full bg-background px-1.5 text-xs text-muted-foreground">
-                    {totals[stage.id]?.count ?? 0}
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {formatCurrency(totals[stage.id]?.value ?? 0)}
-                </span>
-              </div>
-              <Droppable droppableId={stage.id}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={cn(
-                      'flex min-h-[120px] flex-1 flex-col gap-2 p-2 transition-colors',
-                      snapshot.isDraggingOver && 'bg-primary/5',
-                    )}
-                  >
-                    {(columns[stage.id] ?? []).map((lead, index) => (
-                      <LeadCard
-                        key={lead.id}
-                        lead={lead}
-                        index={index}
-                        users={users ?? []}
-                        onSelect={openLead}
-                        onSchedule={openSchedule}
-                        onAssign={assignLead}
-                      />
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+        <Droppable droppableId="board" type="COLUMN" direction="horizontal">
+          {(boardProvided) => (
+            <div
+              ref={boardProvided.innerRef}
+              {...boardProvided.droppableProps}
+              className="flex flex-1 gap-4 overflow-x-auto pb-4 scrollbar-thin"
+            >
+              {stageOrder.map((stage, colIndex) => (
+                <Draggable key={stage.id} draggableId={stage.id} index={colIndex}>
+                  {(colProvided, colSnapshot) => (
+                    <div
+                      ref={colProvided.innerRef}
+                      {...colProvided.draggableProps}
+                      className={cn(
+                        'flex w-72 shrink-0 flex-col rounded-lg bg-muted/40 transition-shadow',
+                        colSnapshot.isDragging && 'shadow-lg ring-1 ring-primary/30',
+                      )}
+                    >
+                      <div className="flex items-center justify-between border-b px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            {...colProvided.dragHandleProps}
+                            title="Arrastar coluna"
+                            className="cursor-grab text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+                          >
+                            <GripVertical className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
+                          <span className="text-sm font-semibold">{stage.name}</span>
+                          <span className="rounded-full bg-background px-1.5 text-xs text-muted-foreground">
+                            {totals[stage.id]?.count ?? 0}
+                          </span>
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {formatCurrency(totals[stage.id]?.value ?? 0)}
+                        </span>
+                      </div>
+                      <Droppable droppableId={stage.id} type="CARD">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className={cn(
+                              'flex min-h-[120px] flex-1 flex-col gap-2 p-2 transition-colors',
+                              snapshot.isDraggingOver && 'bg-primary/5',
+                            )}
+                          >
+                            {(columns[stage.id] ?? []).map((lead, index) => (
+                              <LeadCard
+                                key={lead.id}
+                                lead={lead}
+                                index={index}
+                                users={users ?? []}
+                                onSelect={openLead}
+                                onSchedule={openSchedule}
+                                onAssign={assignLead}
+                              />
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {boardProvided.placeholder}
             </div>
-          ))}
-        </div>
+          )}
+        </Droppable>
       </DragDropContext>
 
       <LeadQuickView

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronRight, GitBranch, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, GitBranch, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -309,6 +310,25 @@ function PipelineCard({ pipeline, onEdit }: { pipeline: Pipeline; onEdit: () => 
 
   const stages = stagesData ?? [];
 
+  async function onDragStageEnd(result: DropResult) {
+    if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
+    const newStages = Array.from(stages);
+    const [moved] = newStages.splice(result.source.index, 1);
+    newStages.splice(result.destination.index, 0, moved);
+    queryClient.setQueryData(['pipeline-stages', pipeline.id], { stages: newStages });
+    try {
+      await apiPatch('/pipeline/stages/reorder', {
+        order: newStages.map((s, i) => ({ id: s.id, orderIndex: i })),
+      });
+      await queryClient.invalidateQueries({ queryKey: ['stages'] });
+      await queryClient.invalidateQueries({ queryKey: ['board'] });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Falha ao reordenar');
+      queryClient.invalidateQueries({ queryKey: ['pipeline-stages', pipeline.id] });
+    }
+  }
+
   async function deletePipeline() {
     if (!confirm(`Excluir pipeline "${pipeline.name}"? Os leads serão movidos para o pipeline padrão.`)) return;
     setDeletingPipeline(true);
@@ -369,33 +389,56 @@ function PipelineCard({ pipeline, onEdit }: { pipeline: Pipeline; onEdit: () => 
           {stages.length === 0 ? (
             <p className="mb-2 text-sm text-muted-foreground">Nenhum estágio ainda.</p>
           ) : (
-            <div className="mb-3 space-y-1.5">
-              {stages.map((stage) => (
-                <div
-                  key={stage.id}
-                  className="flex items-center gap-2 rounded-md border bg-background px-3 py-2"
-                >
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
-                  <span className="flex-1 text-sm">{stage.name}</span>
-                  {stage.isClosedWon && <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">Ganho</Badge>}
-                  {stage.isClosedLost && <Badge variant="destructive" className="text-[10px]">Perdido</Badge>}
-                  <button
-                    type="button"
-                    onClick={() => setEditingStage(stage)}
-                    className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+            <DragDropContext onDragEnd={onDragStageEnd}>
+              <Droppable droppableId={`stages-${pipeline.id}`}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="mb-3 space-y-1.5"
                   >
-                    <Pencil className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeletingStage(stage)}
-                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    {stages.map((stage, index) => (
+                      <Draggable key={stage.id} draggableId={stage.id} index={index}>
+                        {(drag, dragSnapshot) => (
+                          <div
+                            ref={drag.innerRef}
+                            {...drag.draggableProps}
+                            className={`flex items-center gap-2 rounded-md border bg-background px-3 py-2 transition-shadow ${dragSnapshot.isDragging ? 'shadow-md ring-1 ring-primary/20' : ''}`}
+                          >
+                            <span
+                              {...drag.dragHandleProps}
+                              title="Arrastar estágio"
+                              className="cursor-grab text-muted-foreground/30 hover:text-muted-foreground active:cursor-grabbing"
+                            >
+                              <GripVertical className="h-3.5 w-3.5" />
+                            </span>
+                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                            <span className="flex-1 text-sm">{stage.name}</span>
+                            {stage.isClosedWon && <Badge className="text-[10px] bg-emerald-100 text-emerald-700 border-emerald-200">Ganho</Badge>}
+                            {stage.isClosedLost && <Badge variant="destructive" className="text-[10px]">Perdido</Badge>}
+                            <button
+                              type="button"
+                              onClick={() => setEditingStage(stage)}
+                              className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingStage(stage)}
+                              className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           )}
           <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setAddingStage(true)}>
             <Plus className="h-3.5 w-3.5" /> Adicionar estágio
