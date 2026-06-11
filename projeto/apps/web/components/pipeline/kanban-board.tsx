@@ -335,6 +335,7 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
                                 onSelect={openLead}
                                 onSchedule={openSchedule}
                                 onAssign={assignLead}
+                                onDeleted={() => queryClient.invalidateQueries({ queryKey: ['leads'] })}
                               />
                             ))}
                             {provided.placeholder}

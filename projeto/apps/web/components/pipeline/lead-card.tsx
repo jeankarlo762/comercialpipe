@@ -3,10 +3,12 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Draggable } from '@hello-pangea/dnd';
-import { Building2, CalendarPlus, Clock, Maximize2, Phone, UserPlus } from 'lucide-react';
+import { Building2, CalendarPlus, Clock, Maximize2, Phone, Trash2, UserPlus } from 'lucide-react';
 import type { Lead } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { api4comHref, openExternal, whatsappHref } from '@/lib/contact';
+import { apiDelete, ApiError } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface AssignableUser { id: string; name: string; }
 
@@ -95,6 +97,7 @@ export function LeadCard({
   onSelect,
   onSchedule,
   onAssign,
+  onDeleted,
 }: {
   lead: Lead;
   index: number;
@@ -102,6 +105,7 @@ export function LeadCard({
   onSelect: (leadId: string) => void;
   onSchedule: (leadId: string) => void;
   onAssign: (leadId: string, userId: string | null) => void;
+  onDeleted?: (leadId: string) => void;
 }) {
   const router = useRouter();
   const phone = lead.contactPhone ?? '';
@@ -109,6 +113,22 @@ export function LeadCard({
   const tags = customTags(lead);
   const [ownerOpen, setOwnerOpen] = useState(false);
   const ownerRef = useRef<HTMLDivElement>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await apiDelete(`/leads/${lead.id}`);
+      toast.success('Lead excluído');
+      setConfirmDelete(false);
+      onDeleted?.(lead.id);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Falha ao excluir lead');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const daysSinceActivity = lead.lastActivityAt
     ? Math.floor((Date.now() - new Date(lead.lastActivityAt).getTime()) / 86400000)
@@ -133,7 +153,7 @@ export function LeadCard({
           style={provided.draggableProps.style as React.CSSProperties}
           onClick={() => onSelect(lead.id)}
           className={cn(
-            'flex cursor-pointer gap-2 rounded-md border bg-card p-2.5 shadow-sm transition-shadow hover:border-brand/50 hover:shadow-md',
+            'relative flex cursor-pointer gap-2 rounded-md border bg-card p-2.5 shadow-sm transition-shadow hover:border-brand/50 hover:shadow-md',
             snapshot.isDragging && 'rotate-1 border-brand shadow-lg',
             isStale && !snapshot.isDragging && 'border-amber-400/50 bg-amber-50/30 dark:bg-amber-950/20',
           )}
@@ -186,6 +206,14 @@ export function LeadCard({
                   className={cn(iconBtn, 'text-muted-foreground hover:bg-accent hover:text-foreground')}
                 >
                   <Maximize2 className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  title="Excluir lead"
+                  onClick={(e) => stop(e, () => setConfirmDelete(true))}
+                  className={cn(iconBtn, 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive')}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -256,6 +284,34 @@ export function LeadCard({
               </div>
             </div>
           </div>
+
+          {/* Confirmação de exclusão */}
+          {confirmDelete && (
+            <div
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-md bg-card/95 p-3 backdrop-blur-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-center text-xs font-medium">Excluir <span className="text-destructive">{displayName}</span>?</p>
+              <p className="text-center text-[10px] text-muted-foreground">Esta ação não pode ser desfeita.</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  className="rounded-md border px-3 py-1 text-xs hover:bg-accent"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleDelete}
+                  className="rounded-md bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60"
+                >
+                  {deleting ? 'Excluindo...' : 'Excluir'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Draggable>
