@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Link2, Video } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Link2, MessageCircle, Pencil, Plus, Trash2, Video } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiGet, apiGetPaginated, apiPatch, apiPost, ApiError } from '@/lib/api';
+import { apiDelete, apiGet, apiGetPaginated, apiPatch, apiPost, ApiError } from '@/lib/api';
 import { useStages, useTenant } from '@/lib/queries';
 import type { User } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,6 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface MessageTemplate {
+  id: string;
+  name: string;
+  category: string;
+  body: string;
+  isActive: boolean;
+}
 
 const ROLE_LABEL: Record<string, string> = {
   admin: 'Administrador',
@@ -31,12 +41,14 @@ export default function SettingsPage() {
         <TabsList>
           <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="n8n">Integrações</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
           <TabsTrigger value="google">Google Agenda</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="team"><TeamTab /></TabsContent>
         <TabsContent value="n8n"><N8nTab /></TabsContent>
+        <TabsContent value="whatsapp"><WhatsappTab /></TabsContent>
         <TabsContent value="google"><GoogleTab /></TabsContent>
         <TabsContent value="webhooks"><WebhooksTab /></TabsContent>
       </Tabs>
@@ -444,6 +456,269 @@ function GoogleTab() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function WhatsappTab() {
+  const { data: tenant } = useTenant();
+  const queryClient = useQueryClient();
+  const [creds, setCreds] = useState({ phoneNumberId: '', accessToken: '' });
+  const [savingCreds, setSavingCreds] = useState(false);
+
+  // Templates state
+  const [editTpl, setEditTpl] = useState<MessageTemplate | null>(null);
+  const [newTpl, setNewTpl] = useState(false);
+  const [tplForm, setTplForm] = useState({ name: '', category: 'geral', body: '' });
+  const [savingTpl, setSavingTpl] = useState(false);
+
+  const { data: tplData, isLoading: tplLoading } = useQuery({
+    queryKey: ['message-templates'],
+    queryFn: () => apiGetPaginated<MessageTemplate[]>('/message-templates', { limit: 50 }),
+    staleTime: 30_000,
+  });
+  const templates = tplData?.data ?? [];
+
+  function openNew() {
+    setTplForm({ name: '', category: 'geral', body: '' });
+    setEditTpl(null);
+    setNewTpl(true);
+  }
+  function openEdit(t: MessageTemplate) {
+    setTplForm({ name: t.name, category: t.category, body: t.body });
+    setEditTpl(t);
+    setNewTpl(true);
+  }
+
+  async function saveCreds(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingCreds(true);
+    try {
+      await apiPatch('/tenants/current/integrations/whatsapp', {
+        phoneNumberId: creds.phoneNumberId || null,
+        accessToken: creds.accessToken || null,
+      });
+      toast.success('Credenciais WhatsApp salvas');
+      setCreds({ phoneNumberId: '', accessToken: '' });
+      await queryClient.invalidateQueries({ queryKey: ['tenant'] });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Falha ao salvar');
+    } finally {
+      setSavingCreds(false);
+    }
+  }
+
+  async function saveTpl(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingTpl(true);
+    try {
+      if (editTpl) {
+        await apiPatch(`/message-templates/${editTpl.id}`, tplForm);
+        toast.success('Template atualizado');
+      } else {
+        await apiPost('/message-templates', tplForm);
+        toast.success('Template criado');
+      }
+      setNewTpl(false);
+      setEditTpl(null);
+      await queryClient.invalidateQueries({ queryKey: ['message-templates'] });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Falha ao salvar template');
+    } finally {
+      setSavingTpl(false);
+    }
+  }
+
+  async function deleteTpl(id: string) {
+    try {
+      await apiDelete(`/message-templates/${id}`);
+      toast.success('Template removido');
+      await queryClient.invalidateQueries({ queryKey: ['message-templates'] });
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : 'Falha ao remover');
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Credentials */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-green-500" />
+            WhatsApp Business API
+            {tenant?.whatsappConfigured && <Badge variant="success">conectado</Badge>}
+          </CardTitle>
+          <CardDescription>
+            Configure as credenciais da Meta Cloud API para enviar mensagens pelo WhatsApp Business
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tenant?.whatsappConfigured && (
+            <div className="mb-4 flex items-center gap-3 rounded-md border bg-green-500/5 p-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
+                <Check className="h-4 w-4 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">WhatsApp conectado</p>
+                <p className="text-xs text-muted-foreground">Phone Number ID: {tenant.whatsappPhoneNumberId}</p>
+              </div>
+            </div>
+          )}
+          <form onSubmit={saveCreds} className="space-y-3">
+            <div className="space-y-2">
+              <Label>Phone Number ID</Label>
+              <Input
+                placeholder={tenant?.whatsappConfigured ? '(já configurado — cole para atualizar)' : '1234567890'}
+                value={creds.phoneNumberId}
+                onChange={(e) => setCreds({ ...creds, phoneNumberId: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Encontre em: Meta for Developers → WhatsApp → API Setup → Phone Number ID
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Access Token permanente</Label>
+              <Input
+                type="password"
+                placeholder={tenant?.whatsappConfigured ? '••••••••' : 'EAAxxxx...'}
+                value={creds.accessToken}
+                onChange={(e) => setCreds({ ...creds, accessToken: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Token de sistema permanente do Meta Business Manager (não o token temporário de 24h)
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={savingCreds || (!creds.phoneNumberId && !creds.accessToken)}>
+                {savingCreds ? 'Salvando...' : 'Salvar credenciais'}
+              </Button>
+              {tenant?.whatsappConfigured && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={async () => {
+                    await apiPatch('/tenants/current/integrations/whatsapp', { phoneNumberId: null, accessToken: null });
+                    await queryClient.invalidateQueries({ queryKey: ['tenant'] });
+                    toast.success('Credenciais removidas');
+                  }}
+                >
+                  Remover
+                </Button>
+              )}
+            </div>
+          </form>
+
+          {/* Setup guide */}
+          <div className="mt-4 rounded-md border border-blue-500/20 bg-blue-500/5 p-3 text-sm text-muted-foreground">
+            <p className="mb-1 font-medium text-foreground">Como configurar</p>
+            <ol className="list-decimal space-y-1 pl-4">
+              <li>Acesse <span className="font-medium text-foreground">developers.facebook.com</span> e crie um app do tipo Business</li>
+              <li>Adicione o produto <span className="font-medium text-foreground">WhatsApp</span> ao app</li>
+              <li>Em <span className="font-medium text-foreground">API Setup</span>, copie o <span className="font-medium text-foreground">Phone Number ID</span></li>
+              <li>No <span className="font-medium text-foreground">Meta Business Manager</span>, crie um token de sistema permanente com permissão <code className="rounded bg-muted px-1">whatsapp_business_messaging</code></li>
+              <li>Cole ambos os valores acima e salve</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Message Templates */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Mensagens prontas</CardTitle>
+              <CardDescription>Templates reutilizáveis para enviar via WhatsApp. Use {'{{nome}}'}, {'{{empresa}}'} como variáveis.</CardDescription>
+            </div>
+            <Button size="sm" onClick={openNew}>
+              <Plus className="h-4 w-4" /> Novo template
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {tplLoading ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : templates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum template criado ainda.</p>
+          ) : (
+            <div className="space-y-2">
+              {templates.map((t) => (
+                <div key={t.id} className="flex items-start gap-3 rounded-md border p-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{t.name}</span>
+                      <Badge variant="secondary" className="text-xs">{t.category}</Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2 whitespace-pre-wrap">{t.body}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(t)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => void deleteTpl(t.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Template create/edit dialog */}
+      <Dialog open={newTpl} onOpenChange={(v) => { if (!v) { setNewTpl(false); setEditTpl(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editTpl ? 'Editar template' : 'Novo template'}</DialogTitle>
+          </DialogHeader>
+          <form id="tpl-form" onSubmit={saveTpl} className="space-y-3">
+            <div className="space-y-2">
+              <Label>Nome do template</Label>
+              <Input
+                required
+                placeholder="Ex: Boas-vindas, Follow-up, Proposta"
+                value={tplForm.name}
+                onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Categoria</Label>
+              <Input
+                placeholder="geral"
+                value={tplForm.category}
+                onChange={(e) => setTplForm({ ...tplForm, category: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mensagem</Label>
+              <Textarea
+                required
+                rows={5}
+                placeholder={"Olá {{nome}}, tudo bem?\n\nVi que você tem interesse em nossos serviços..."}
+                value={tplForm.body}
+                onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Variáveis disponíveis: <code className="rounded bg-muted px-1">{'{{nome}}'}</code> <code className="rounded bg-muted px-1">{'{{empresa}}'}</code> <code className="rounded bg-muted px-1">{'{{telefone}}'}</code>
+              </p>
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setNewTpl(false); setEditTpl(null); }}>Cancelar</Button>
+            <Button type="submit" form="tpl-form" disabled={savingTpl}>
+              {savingTpl ? 'Salvando...' : editTpl ? 'Salvar alterações' : 'Criar template'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

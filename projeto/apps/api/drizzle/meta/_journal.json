@@ -36,6 +36,13 @@
       "when": 1749608400000,
       "tag": "0004_form_target_stage",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1749694800000,
+      "tag": "0005_whatsapp_credentials",
+      "breakpoints": true
     }
   ]
 }

@@ -20,6 +20,8 @@ export async function getTenant(tenantId: string) {
     n8nBaseUrl: tenant.n8nBaseUrl,
     n8nConfigured: Boolean(tenant.n8nBaseUrl && tenant.n8nApiKeyEnc && tenant.n8nWebhookSecretEnc),
     googleConfigured: Boolean(tenant.googleClientIdEnc && tenant.googleClientSecretEnc),
+    whatsappConfigured: Boolean(tenant.whatsappPhoneNumberId && tenant.whatsappAccessTokenEnc),
+    whatsappPhoneNumberId: tenant.whatsappPhoneNumberId ?? null,
     createdAt: tenant.createdAt,
   };
 }
@@ -90,6 +92,43 @@ export async function updateGoogleCredentials(
     })
     .where(eq(tenants.id, tenantId));
   return getTenant(tenantId);
+}
+
+export async function updateWhatsappConfig(
+  tenantId: string,
+  phoneNumberId: string | null,
+  accessToken: string | null,
+) {
+  await db
+    .update(tenants)
+    .set({
+      whatsappPhoneNumberId: phoneNumberId ?? null,
+      whatsappAccessTokenEnc: accessToken ? encryptSecret(accessToken) : null,
+    })
+    .where(eq(tenants.id, tenantId));
+  return getTenant(tenantId);
+}
+
+export interface WhatsappCredentials {
+  phoneNumberId: string;
+  accessToken: string;
+}
+
+export async function getWhatsappCredentials(tenantId: string): Promise<WhatsappCredentials | null> {
+  const [tenant] = await db
+    .select({
+      phoneNumberId: tenants.whatsappPhoneNumberId,
+      accessTokenEnc: tenants.whatsappAccessTokenEnc,
+    })
+    .from(tenants)
+    .where(eq(tenants.id, tenantId))
+    .limit(1);
+
+  if (!tenant?.phoneNumberId || !tenant.accessTokenEnc) return null;
+  return {
+    phoneNumberId: tenant.phoneNumberId,
+    accessToken: decryptSecret(tenant.accessTokenEnc),
+  };
 }
 
 export async function getGoogleCredentials(tenantId: string): Promise<GoogleCredentials | null> {

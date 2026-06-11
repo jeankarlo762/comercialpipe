@@ -61,6 +61,8 @@ export const tenants = pgTable('tenants', {
   n8nWebhookSecretEnc: text('n8n_webhook_secret_enc'),
   googleClientIdEnc: text('google_client_id_enc'),
   googleClientSecretEnc: text('google_client_secret_enc'),
+  whatsappPhoneNumberId: varchar('whatsapp_phone_number_id', { length: 80 }),
+  whatsappAccessTokenEnc: text('whatsapp_access_token_enc'),
   ...timestamps,
 });
 

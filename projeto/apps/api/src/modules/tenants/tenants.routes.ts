@@ -7,11 +7,16 @@ import { sendOk } from '../../shared/http/response.js';
 import { requireAuth, auditContext } from '../../shared/http/context.js';
 import { recordAudit } from '../../shared/audit/audit.service.js';
 import { db } from '../../shared/database/client.js';
-import { getTenant, updateGoogleCredentials, updateN8nConfig } from './tenants.service.js';
+import { getTenant, updateGoogleCredentials, updateN8nConfig, updateWhatsappConfig } from './tenants.service.js';
 
 const googleConfigSchema = z.object({
   clientId: z.string().min(1).nullable(),
   clientSecret: z.string().min(1).nullable(),
+});
+
+const whatsappConfigSchema = z.object({
+  phoneNumberId: z.string().min(1).max(80).nullable(),
+  accessToken: z.string().min(1).nullable(),
 });
 
 export async function tenantsRoutes(app: FastifyInstance): Promise<void> {
@@ -52,6 +57,23 @@ export async function tenantsRoutes(app: FastifyInstance): Promise<void> {
         entityType: 'tenant',
         entityId: auth.tenantId,
         newValue: { configured: Boolean(input.clientId) },
+      });
+      return sendOk(reply, { tenant });
+    },
+  );
+
+  app.patch(
+    '/current/integrations/whatsapp',
+    { preHandler: requirePermission('integrations:manage') },
+    async (request, reply) => {
+      const auth = requireAuth(request);
+      const input = parseOrThrow(whatsappConfigSchema, request.body);
+      const tenant = await updateWhatsappConfig(auth.tenantId, input.phoneNumberId, input.accessToken);
+      await recordAudit(db, auditContext(request), {
+        action: 'integration.whatsapp_updated',
+        entityType: 'tenant',
+        entityId: auth.tenantId,
+        newValue: { configured: Boolean(input.phoneNumberId) },
       });
       return sendOk(reply, { tenant });
     },

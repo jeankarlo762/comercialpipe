@@ -310,7 +310,7 @@ export function FormBuilder() {
                 </Button>
               </div>
               {fields.map((field, i) => (
-                <div key={i} className="space-y-2 rounded-md border p-2">
+                <div key={i} className="space-y-2 rounded-md border border-border/70 bg-background p-3 shadow-sm">
                   <div className="flex items-center gap-2">
                     <Input
                       className="h-9 flex-1"

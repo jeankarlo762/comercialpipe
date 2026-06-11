@@ -20,6 +20,8 @@ COPY --from=build /app/packages/shared-types ./packages/shared-types
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
+COPY --from=build /app/apps/api/create-admin.mjs ./apps/api/create-admin.mjs
+COPY --from=build /app/apps/api/seed-forms.mjs ./apps/api/seed-forms.mjs
 WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["sh", "-c", "node dist/shared/database/migrate.js && node dist/server.js"]
+CMD ["sh", "-c", "node dist/shared/database/migrate.js && node create-admin.mjs && node seed-forms.mjs && node dist/server.js"]

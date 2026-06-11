@@ -28,6 +28,7 @@ import { messageTemplatesRoutes } from './modules/message-templates/message-temp
 import { notificationsRoutes } from './modules/notifications/notifications.routes.js';
 import { userGoalsRoutes } from './modules/user-goals/user-goals.routes.js';
 import { pipelinesRoutes } from './modules/pipelines/pipelines.routes.js';
+import { whatsappRoutes } from './modules/whatsapp/whatsapp.routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -104,6 +105,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       await v1.register(notificationsRoutes, { prefix: '/notifications' });
       await v1.register(userGoalsRoutes, { prefix: '/goals' });
       await v1.register(pipelinesRoutes, { prefix: '/pipelines' });
+      await v1.register(whatsappRoutes, { prefix: '/whatsapp' });
     },
     { prefix: '/v1' },
   );

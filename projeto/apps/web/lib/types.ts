@@ -26,6 +26,8 @@ export interface Tenant {
   n8nBaseUrl: string | null;
   n8nConfigured: boolean;
   googleConfigured: boolean;
+  whatsappConfigured: boolean;
+  whatsappPhoneNumberId: string | null;
 }
 
 export interface Stage {
