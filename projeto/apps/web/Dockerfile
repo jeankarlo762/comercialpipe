@@ -3,6 +3,8 @@ FROM node:22-alpine AS base
 WORKDIR /app
 
 FROM base AS build
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json* turbo.json tsconfig.base.json ./
 COPY packages/shared-types/package.json packages/shared-types/
