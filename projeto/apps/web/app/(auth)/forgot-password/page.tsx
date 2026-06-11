@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, BarChart3, CheckCircle2, Mail } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Mail } from 'lucide-react';
+import { NxLogo } from '@/components/ui/nx-logo';
 import { toast } from 'sonner';
 import { apiPost, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -32,9 +33,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
+          <NxLogo size="sm" />
           <span className="text-xl font-bold tracking-tight">CRM NX</span>
         </div>
 

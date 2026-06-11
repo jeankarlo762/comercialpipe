@@ -3,7 +3,8 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, BarChart3, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
+import { NxLogo } from '@/components/ui/nx-logo';
 import { toast } from 'sonner';
 import { apiPost, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -165,9 +166,7 @@ export default function ResetPasswordPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-white px-6 py-12 dark:bg-zinc-900">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
+          <NxLogo size="sm" />
           <span className="text-xl font-bold tracking-tight">CRM NX</span>
         </div>
         <Suspense fallback={null}>

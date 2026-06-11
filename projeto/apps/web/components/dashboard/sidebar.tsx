@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { NxLogo } from '@/components/ui/nx-logo';
 import { useQuery } from '@tanstack/react-query';
 import {
   Building2,
@@ -147,7 +148,7 @@ export function Sidebar() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r bg-card/40 md:flex">
       <div className="flex h-16 items-center gap-2 border-b px-6">
-        <Sparkles className="h-6 w-6 text-brand" />
+        <NxLogo size="sm" />
         <span className="text-lg font-bold tracking-tight">CRM NX</span>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { BarChart3, CheckCircle2, Loader2, Mail, Phone, User, Building2 } from 'lucide-react';
+import { CheckCircle2, Loader2, Mail, Phone, User, Building2 } from 'lucide-react';
+import { NxLogo } from '@/components/ui/nx-logo';
 import { apiGet, apiPost, ApiError } from '@/lib/api';
 import type { PublicForm } from '@/lib/types';
 
@@ -96,7 +97,7 @@ export default function PublicFormPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white px-4 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50">
-          <BarChart3 className="h-8 w-8 text-amber-400" />
+          <NxLogo size="lg" />
         </div>
         <h2 className="text-xl font-semibold text-gray-800">Formulário indisponível</h2>
         <p className="mt-2 text-sm text-gray-500">Este formulário foi desativado ou não existe.</p>
@@ -109,9 +110,7 @@ export default function PublicFormPage() {
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-6 py-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
+          <NxLogo size="sm" />
           <span className="text-lg font-bold tracking-tight text-gray-900">CRM NX</span>
         </div>
       </div>

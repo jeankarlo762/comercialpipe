@@ -4,12 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { ArrowRight, BarChart3, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NxLogo } from '@/components/ui/nx-logo';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -46,9 +47,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/20 ring-1 ring-amber-400/30">
-            <BarChart3 className="h-5 w-5 text-amber-400" />
-          </div>
+          <NxLogo size="md" />
           <span className="text-2xl font-bold tracking-tight text-white">CRM NX</span>
         </div>
 
@@ -145,9 +144,7 @@ export default function LoginPage() {
       <div className="flex w-full flex-col items-center justify-center bg-white px-6 py-12 lg:w-1/2 dark:bg-zinc-900">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-3 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
+          <NxLogo size="sm" />
           <span className="text-xl font-bold tracking-tight">CRM NX</span>
         </div>
 
