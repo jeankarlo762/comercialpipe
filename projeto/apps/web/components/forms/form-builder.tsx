@@ -35,6 +35,7 @@ const TYPE_LABEL: Record<FormFieldType, string> = {
   textarea: 'Texto longo',
   checkbox: 'Checkbox',
   number: 'Número',
+  currency: 'Valor (R$)',
 };
 
 function slugKey(label: string): string {
@@ -118,6 +119,17 @@ function PreviewField({ field }: { field: FieldRow }) {
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" disabled /> {label} {field.required && '*'}
       </label>
+    );
+  }
+  if (field.type === 'currency') {
+    return (
+      <div className="space-y-1">
+        <p className="text-sm font-medium">{label} {field.required && '*'}</p>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+          <Input disabled placeholder="0,00" className="pl-10" />
+        </div>
+      </div>
     );
   }
   return (
@@ -258,7 +270,7 @@ export function FormBuilder() {
               {description && <p className="text-sm text-muted-foreground">{description}</p>}
               <div className="space-y-1"><p className="text-sm font-medium">Nome *</p><Input disabled placeholder="resposta..." /></div>
               <div className="space-y-1"><p className="text-sm font-medium">Nome da empresa *</p><Input disabled placeholder="resposta..." /></div>
-              <div className="space-y-1"><p className="text-sm font-medium">Telefone *</p><Input disabled placeholder="resposta..." /></div>
+              <div className="space-y-1"><p className="text-sm font-medium">Telefone *</p><Input disabled placeholder="+55 (11) 99999-9999" /></div>
               {fields.filter((f) => f.label.trim()).map((f, i) => <PreviewField key={i} field={f} />)}
               <Button type="button" disabled className="w-full">Enviar</Button>
             </div>

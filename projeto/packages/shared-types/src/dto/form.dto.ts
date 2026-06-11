@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const FORM_FIELD_TYPES = ['text', 'textarea', 'checkbox', 'number'] as const;
+export const FORM_FIELD_TYPES = ['text', 'textarea', 'checkbox', 'number', 'currency'] as const;
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
 
 export const formFieldSchema = z.object({

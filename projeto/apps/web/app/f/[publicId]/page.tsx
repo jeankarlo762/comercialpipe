@@ -23,7 +23,34 @@ export default function PublicFormPage() {
   const [error, setError] = useState('');
 
   const [base, setBase] = useState({ name: '', company: '', phone: '', email: '' });
+  const [phoneDisplay, setPhoneDisplay] = useState('');
   const [custom, setCustom] = useState<Record<string, string | boolean | string[]>>({});
+
+  function formatPhoneBR(digits: string): string {
+    const d = digits.slice(0, 11);
+    if (!d) return '';
+    if (d.length <= 2) return `+55 (${d}`;
+    if (d.length <= 7) return `+55 (${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `+55 (${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `+55 (${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
+
+  function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const digits = e.target.value.replace(/\D/g, '').replace(/^55/, '').slice(0, 11);
+    setPhoneDisplay(formatPhoneBR(digits));
+    setBase((b) => ({ ...b, phone: digits }));
+  }
+
+  function formatBRLInput(raw: string): string {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    const num = parseInt(digits, 10) / 100;
+    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function parseBRL(formatted: string): number {
+    return parseFloat(formatted.replace(/\./g, '').replace(',', '.')) || 0;
+  }
 
   useEffect(() => {
     let active = true;
@@ -45,7 +72,9 @@ export default function PublicFormPage() {
       for (const field of form?.fields ?? []) {
         const value = custom[field.key];
         if (value === undefined) continue;
-        fields[field.key] = field.type === 'number' ? Number(value) : value;
+        if (field.type === 'number') fields[field.key] = Number(value);
+        else if (field.type === 'currency') fields[field.key] = parseBRL(value as string);
+        else fields[field.key] = value;
       }
       await apiPost(`/public/forms/${publicId}/submit`, {
         name: base.name,
@@ -78,7 +107,7 @@ export default function PublicFormPage() {
       <div className="w-full max-w-lg">
         <div className="mb-6 flex items-center justify-center gap-2 text-brand">
           <Sparkles className="h-5 w-5" />
-          <span className="text-sm font-semibold text-foreground">CommercialPipe</span>
+          <span className="text-sm font-semibold text-foreground">CRM NX</span>
         </div>
         <Card className="shadow-xl">
           {done ? (
@@ -106,7 +135,14 @@ export default function PublicFormPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label htmlFor="phone">Telefone *</Label>
-                      <Input id="phone" required value={base.phone} onChange={(e) => setBase({ ...base, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                      <Input
+                        id="phone"
+                        required
+                        value={phoneDisplay}
+                        onChange={handlePhoneChange}
+                        placeholder="+55 (11) 99999-9999"
+                        inputMode="numeric"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">E-mail</Label>
@@ -166,6 +202,21 @@ export default function PublicFormPage() {
                               value={(custom[field.key] as string) ?? ''}
                               onChange={(e) => setCustom({ ...custom, [field.key]: e.target.value })}
                             />
+                          ) : field.type === 'currency' ? (
+                            <div className="relative">
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                              <Input
+                                id={field.key}
+                                inputMode="numeric"
+                                required={field.required}
+                                placeholder="0,00"
+                                className="pl-10"
+                                value={(custom[field.key] as string) ?? ''}
+                                onChange={(e) =>
+                                  setCustom({ ...custom, [field.key]: formatBRLInput(e.target.value) })
+                                }
+                              />
+                            </div>
                           ) : (
                             <Input
                               id={field.key}
