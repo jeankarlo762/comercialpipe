@@ -62,7 +62,15 @@ function OwnerDropdown({
 function customTags(lead: Lead): string[] {
   const cf = lead.customFields ?? {};
   const tags: string[] = [];
+
+  // Show form origin as a clean tag
+  const formName = cf['__formName'];
+  if (typeof formName === 'string' && formName) {
+    tags.push(`Formulário: ${formName}`);
+  }
+
   for (const [key, value] of Object.entries(cf)) {
+    if (key.startsWith('__')) continue; // skip internal metadata
     if (key === 'description') continue;
     if (Array.isArray(value)) value.forEach((v) => tags.push(`${key}: ${v}`));
     else if (value === true) tags.push(key);
