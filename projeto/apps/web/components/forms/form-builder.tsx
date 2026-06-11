@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { Lock, Plus, Trash2, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { GitBranch, Lock, Plus, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { FORM_FIELD_TYPES, type FormFieldType } from '@commercialpipe/shared-types';
-import { apiPost, ApiError } from '@/lib/api';
+import { apiGet, apiPost, ApiError } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Stage } from '@/lib/types';
+import type { PipelineItem } from '@/lib/queries';
 
 interface FieldRow {
   key: string;
@@ -151,12 +153,38 @@ export function FormBuilder() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [fields, setFields] = useState<FieldRow[]>([]);
+  const [targetPipelineId, setTargetPipelineId] = useState('');
+  const [targetStageId, setTargetStageId] = useState('');
+
+  const { data: pipelines } = useQuery({
+    queryKey: ['pipelines'],
+    queryFn: () => apiGet<{ pipelines: PipelineItem[] }>('/pipelines').then((r) => r.pipelines),
+    enabled: open,
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: stagesData } = useQuery({
+    queryKey: ['stages', targetPipelineId || undefined],
+    queryFn: () =>
+      apiGet<{ stages: Stage[] }>('/pipeline/stages', targetPipelineId ? { pipelineId: targetPipelineId } : undefined).then(
+        (r) => r.stages,
+      ),
+    enabled: open,
+    staleTime: 5 * 60_000,
+  });
+
+  const stages = stagesData ?? [];
 
   function addField() {
     setFields([...fields, { key: '', label: '', type: 'text', required: false, options: [] }]);
   }
   function update(index: number, patch: Partial<FieldRow>) {
     setFields(fields.map((f, i) => (i === index ? { ...f, ...patch } : f)));
+  }
+
+  function handlePipelineChange(pid: string) {
+    setTargetPipelineId(pid === '__all' ? '' : pid);
+    setTargetStageId('');
   }
 
   async function save(e: { preventDefault: () => void }) {
@@ -172,11 +200,19 @@ export function FormBuilder() {
       }));
     setSaving(true);
     try {
-      await apiPost('/forms', { name, description: description || null, fields: prepared, isActive: true });
+      await apiPost('/forms', {
+        name,
+        description: description || null,
+        fields: prepared,
+        isActive: true,
+        targetStageId: targetStageId || null,
+      });
       toast.success('Formulário criado — link gerado');
       setName('');
       setDescription('');
       setFields([]);
+      setTargetPipelineId('');
+      setTargetStageId('');
       setOpen(false);
       await queryClient.invalidateQueries({ queryKey: ['forms'] });
     } catch (err) {
@@ -209,6 +245,50 @@ export function FormBuilder() {
             <div className="space-y-2">
               <Label>Descrição (opcional)</Label>
               <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Fale com nosso time" />
+            </div>
+
+            {/* Destino do lead */}
+            <div className="space-y-2 rounded-lg border border-brand/20 bg-brand/[0.03] p-3">
+              <div className="flex items-center gap-1.5">
+                <GitBranch className="h-3.5 w-3.5 text-brand" />
+                <Label className="text-xs font-semibold text-brand">Destino do lead</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">Pipeline e estágio onde o lead será criado ao preencher o formulário.</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Pipeline</Label>
+                  <Select value={targetPipelineId || '__all'} onValueChange={handlePipelineChange}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Padrão" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__all">Padrão (primeiro)</SelectItem>
+                      {(pipelines ?? []).map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Estágio</Label>
+                  <Select value={targetStageId || '__first'} onValueChange={(v) => setTargetStageId(v === '__first' ? '' : v)}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Primeiro estágio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__first">Primeiro estágio</SelectItem>
+                      {stages.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-1.5">
+                            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
+                            {s.name}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             <div>

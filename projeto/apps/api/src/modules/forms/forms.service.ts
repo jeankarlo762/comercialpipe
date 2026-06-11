@@ -36,6 +36,7 @@ export async function createForm(tenantId: string, createdBy: string, input: Cre
       fields: input.fields,
       isActive: input.isActive,
       publicId: generatePublicId(),
+      targetStageId: input.targetStageId ?? null,
     })
     .returning();
   return form;
@@ -47,6 +48,7 @@ export async function updateForm(tenantId: string, id: string, input: UpdateForm
   if (input.description !== undefined) patch.description = input.description;
   if (input.fields !== undefined) patch.fields = input.fields;
   if (input.isActive !== undefined) patch.isActive = input.isActive;
+  if (input.targetStageId !== undefined) patch.targetStageId = input.targetStageId;
 
   const [form] = await db
     .update(forms)
@@ -110,7 +112,13 @@ export async function submitPublicForm(publicId: string, input: FormSubmissionIn
     }
   }
 
-  const stageId = await getFirstStageId(tenantId);
+  // Metadata do formulário para exibição no popup do lead.
+  customFields['__formName'] = form.name;
+  customFields['__formId'] = form.id;
+  customFields['__fieldTypes'] = Object.fromEntries(definedFields.map((f) => [f.label, f.type]));
+
+  // Usa o estágio configurado no formulário ou o primeiro estágio do tenant.
+  const stageId = (form.targetStageId as string | null) ?? await getFirstStageId(tenantId);
 
   const result = await db.transaction(async (tx) => {
     const [account] = await tx
@@ -138,7 +146,7 @@ export async function submitPublicForm(publicId: string, input: FormSubmissionIn
         contactId: contact?.id ?? null,
         accountId: account?.id ?? null,
         currency: 'BRL',
-        source: 'webhook',
+        source: 'form',
         customFields,
       })
       .returning();

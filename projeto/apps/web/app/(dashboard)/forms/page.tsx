@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, Copy, ExternalLink, FileText, Power, Trash2 } from 'lucide-react';
+import { Check, Copy, ExternalLink, FileText, GitBranch, Power, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiDelete, apiGetPaginated, apiPatch, ApiError } from '@/lib/api';
-import type { FormItem } from '@/lib/types';
+import { apiDelete, apiGet, apiGetPaginated, apiPatch, ApiError } from '@/lib/api';
+import type { FormItem, Stage } from '@/lib/types';
 import { formatDateTime } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,16 @@ import { FormBuilder } from '@/components/forms/form-builder';
 function FormCard({ form, onChange }: { form: FormItem; onChange: () => void }) {
   const [copied, setCopied] = useState(false);
   const link = typeof window !== 'undefined' ? `${window.location.origin}/f/${form.publicId}` : `/f/${form.publicId}`;
+
+  const { data: stageInfo } = useQuery({
+    queryKey: ['stage-info', form.targetStageId],
+    queryFn: () =>
+      apiGet<{ stages: Stage[] }>('/pipeline/stages').then((r) =>
+        r.stages.find((s) => s.id === form.targetStageId) ?? null,
+      ),
+    enabled: !!form.targetStageId,
+    staleTime: 5 * 60_000,
+  });
 
   async function toggle() {
     try {
@@ -48,14 +58,31 @@ function FormCard({ form, onChange }: { form: FormItem; onChange: () => void }) 
     <Card>
       <CardContent className="space-y-3 py-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold">{form.name}</span>
               <Badge variant={form.isActive ? 'success' : 'secondary'}>{form.isActive ? 'ativo' : 'inativo'}</Badge>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {form.fields.length} campos personalizados · {form.submissionsCount} envios · criado {formatDateTime(form.createdAt)}
             </p>
+            {/* Destino do lead */}
+            <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <GitBranch className="h-3 w-3 shrink-0" />
+              {stageInfo ? (
+                <span className="flex items-center gap-1">
+                  Destino:
+                  <span
+                    className="ml-1 flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold text-white"
+                    style={{ backgroundColor: stageInfo.color }}
+                  >
+                    {stageInfo.name}
+                  </span>
+                </span>
+              ) : (
+                <span>Destino: primeiro estágio</span>
+              )}
+            </div>
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={toggle} title={form.isActive ? 'Desativar' : 'Ativar'}>

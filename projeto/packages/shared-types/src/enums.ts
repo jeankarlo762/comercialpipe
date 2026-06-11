@@ -13,7 +13,7 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export const AI_SCORES = ['A', 'B', 'C', 'D'] as const;
 export type AiScore = (typeof AI_SCORES)[number];
 
-export const LEAD_SOURCES = ['webhook', 'manual', 'import'] as const;
+export const LEAD_SOURCES = ['webhook', 'manual', 'import', 'form', 'automation'] as const;
 export type LeadSource = (typeof LEAD_SOURCES)[number];
 
 export const TIMELINE_TYPES = [

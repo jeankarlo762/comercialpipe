@@ -22,6 +22,7 @@ export const createFormSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
   fields: z.array(formFieldSchema).max(30).default([]),
   isActive: z.boolean().default(true),
+  targetStageId: z.string().uuid().nullable().optional(),
 });
 export type CreateFormInput = z.infer<typeof createFormSchema>;
 

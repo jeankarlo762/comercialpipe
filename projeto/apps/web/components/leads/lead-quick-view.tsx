@@ -9,6 +9,7 @@ import {
   Calendar,
   CalendarPlus,
   CheckCircle2,
+  Copy,
   ExternalLink,
   Globe,
   Mail,
@@ -22,14 +23,13 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiGet, apiPatch, apiPost, ApiError } from '@/lib/api';
-import type { LeadDetail, Stage } from '@/lib/types';
-import { useStages } from '@/lib/queries';
+import type { LeadDetail } from '@/lib/types';
+import { usePipelines, useStages } from '@/lib/queries';
 import { api4comHref, openExternal, whatsappHref } from '@/lib/contact';
 import { cn, formatCurrency, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -94,12 +94,18 @@ export function LeadQuickView({
   const queryClient = useQueryClient();
   const [scheduling, setScheduling] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [movingStage, setMovingStage] = useState(false);
-  const [editingPhone, setEditingPhone] = useState(false);
-  const [phoneValue, setPhoneValue] = useState('');
+  const [selectedPipelineId, setSelectedPipelineId] = useState('');
+
+  // Local owner state for immediate UI update on assignment
+  const [localOwner, setLocalOwner] = useState<{ id: string | null; name: string | null } | null>(null);
 
   useEffect(() => {
-    if (leadId) { setScheduling(initialScheduling); setEditing(false); setMovingStage(false); }
+    if (leadId) {
+      setScheduling(initialScheduling);
+      setEditing(false);
+      setSelectedPipelineId('');
+      setLocalOwner(null);
+    }
   }, [leadId, initialScheduling]);
 
   const { data, isLoading } = useQuery({
@@ -108,7 +114,8 @@ export function LeadQuickView({
     enabled: leadId !== null,
   });
 
-  const { data: stages } = useStages();
+  const { data: stages } = useStages(selectedPipelineId || undefined);
+  const { data: pipelines } = usePipelines();
 
   const { data: users } = useQuery({
     queryKey: ['assignable-users'],
@@ -121,34 +128,42 @@ export function LeadQuickView({
   const account = data?.account;
   const stage = data?.stage;
   const phone = contact?.phone ?? '';
-  const description = (lead?.customFields as Record<string, unknown> | undefined)?.['description'];
-  const customEntries = Object.entries((lead?.customFields as Record<string, unknown>) ?? {}).filter(([k]) => k !== 'description');
 
-  function close() { setScheduling(false); setEditing(false); setMovingStage(false); onOpenChange(false); }
+  // Extract form metadata from custom fields
+  const rawCustomFields = (lead?.customFields as Record<string, unknown>) ?? {};
+  const formName = rawCustomFields['__formName'] as string | undefined;
+  const fieldTypes = rawCustomFields['__fieldTypes'] as Record<string, string> | undefined;
+  const description = rawCustomFields['description'] as string | undefined;
+
+  // Filter out system/display fields
+  const customEntries = Object.entries(rawCustomFields).filter(
+    ([k]) => k !== 'description' && !k.startsWith('__'),
+  );
+
+  // Display owner — use local state for immediate feedback
+  const displayOwnerId = localOwner !== null ? localOwner.id : (lead?.ownerId ?? null);
+  const displayOwnerName = localOwner !== null ? localOwner.name : (lead?.ownerName ?? null);
+
+  function close() {
+    setScheduling(false);
+    setEditing(false);
+    setLocalOwner(null);
+    onOpenChange(false);
+  }
 
   async function handleAssign(userId: string) {
     if (!lead) return;
+    const resolvedId = userId === 'none' ? null : userId;
+    const resolvedName = resolvedId ? (users?.find((u) => u.id === resolvedId)?.name ?? null) : null;
+    // Optimistic update
+    setLocalOwner({ id: resolvedId, name: resolvedName });
     try {
-      await apiPatch(`/leads/${lead.id}`, { ownerId: userId === 'none' ? null : userId });
-      toast.success(userId === 'none' ? 'Responsável removido' : 'Responsável atribuído');
-      await queryClient.invalidateQueries({ queryKey: ['lead', lead.id] });
+      await apiPatch(`/leads/${lead.id}`, { ownerId: resolvedId });
+      toast.success(resolvedId ? 'Responsável atribuído' : 'Responsável removido');
       await queryClient.invalidateQueries({ queryKey: ['leads'] });
     } catch (err) {
+      setLocalOwner(null); // revert
       toast.error(err instanceof ApiError ? err.message : 'Falha ao atribuir');
-    }
-  }
-
-  async function handleSavePhone() {
-    if (!contact?.id) return;
-    const trimmed = phoneValue.trim();
-    if (!trimmed) return;
-    try {
-      await apiPatch(`/contacts/${contact.id}`, { phone: trimmed });
-      toast.success('Telefone atualizado');
-      setEditingPhone(false);
-      await queryClient.invalidateQueries({ queryKey: ['lead', lead?.id] });
-    } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : 'Falha ao atualizar');
     }
   }
 
@@ -163,6 +178,12 @@ export function LeadQuickView({
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Falha ao mover');
     }
+  }
+
+  function copyPhone() {
+    if (!phone) return;
+    void navigator.clipboard.writeText(phone);
+    toast.success('Telefone copiado');
   }
 
   return (
@@ -180,7 +201,8 @@ export function LeadQuickView({
             <div className="relative border-b px-5 py-4">
               <div className="flex items-start gap-3 pr-8">
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+                  {/* Stage + move row */}
+                  <div className="mb-2 flex items-center gap-2 flex-wrap">
                     {stage && (
                       <span
                         className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white"
@@ -195,13 +217,50 @@ export function LeadQuickView({
                         Score {lead.aiScore}
                       </span>
                     )}
-                    {lead.status !== 'open' && (
-                      <Badge variant={lead.status === 'won' ? 'success' : 'destructive'} className="text-[10px]">
-                        {lead.status === 'won' ? 'Ganho' : 'Perdido'}
-                      </Badge>
-                    )}
+
+                    {/* Inline move stage */}
+                    <div className="flex items-center gap-1">
+                      {/* Pipeline selector (if multiple pipelines) */}
+                      {pipelines && pipelines.length > 1 && (
+                        <Select
+                          value={selectedPipelineId || '__current'}
+                          onValueChange={(v) => setSelectedPipelineId(v === '__current' ? '' : v)}
+                        >
+                          <SelectTrigger className="h-6 gap-1 border-dashed px-2 text-[11px] text-muted-foreground">
+                            <SelectValue placeholder="Pipe" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__current">Pipeline atual</SelectItem>
+                            {pipelines.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {/* Stage move select */}
+                    <Select
+                      value={lead.stageId}
+                      onValueChange={(v) => handleMoveStage(v)}
+                    >
+                      <SelectTrigger className="h-6 gap-1 border-dashed px-2 text-[11px] text-muted-foreground hover:border-brand hover:text-brand transition-colors w-auto min-w-[100px]">
+                        <SelectValue placeholder="Mover para..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(stages ?? []).map((s) => (
+                          <SelectItem key={s.id} value={s.id} className="text-xs">
+                            <span className="flex items-center gap-1.5">
+                              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+                              {s.name}
+                              {s.id === lead.stageId && <CheckCircle2 className="ml-1 h-3 w-3 text-brand" />}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    </div>
                   </div>
-                  <DialogHeader className="mt-1.5 text-left">
+
+                  <DialogHeader className="text-left">
                     <DialogTitle className="text-base leading-snug">{contact?.name ?? lead.title}</DialogTitle>
                     {account?.name && (
                       <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -211,7 +270,7 @@ export function LeadQuickView({
                   </DialogHeader>
                 </div>
               </div>
-              {/* Action buttons top-right */}
+              {/* Edit button top-right */}
               <div className="absolute right-10 top-4 flex items-center gap-1">
                 <button
                   type="button"
@@ -229,7 +288,6 @@ export function LeadQuickView({
 
             {/* Body */}
             <div className="px-5 pb-5">
-
               {/* Quick actions */}
               {phone && (
                 <div className="mt-4 grid grid-cols-2 gap-2">
@@ -264,35 +322,23 @@ export function LeadQuickView({
               <SectionTitle>Contato</SectionTitle>
               <div className="divide-y divide-border/50 rounded-lg border bg-muted/20">
                 {(phone || contact) && (
-                  <div className="group flex items-center gap-2 px-3 py-2">
+                  <div className="flex items-center gap-2 px-3 py-2">
                     <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <div className="flex flex-1 flex-col gap-0.5">
                       <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Telefone</span>
-                      {editingPhone ? (
-                        <div className="flex items-center gap-1.5">
-                          <Input
-                            autoFocus
-                            value={phoneValue}
-                            onChange={(e) => setPhoneValue(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleSavePhone(); if (e.key === 'Escape') setEditingPhone(false); }}
-                            className="h-7 text-sm"
-                            placeholder="(11) 99999-9999"
-                          />
-                          <Button size="sm" className="h-7 px-2" onClick={handleSavePhone}><Save className="h-3.5 w-3.5" /></Button>
-                          <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingPhone(false)}><X className="h-3.5 w-3.5" /></Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm">{phone || <span className="text-muted-foreground italic">Não informado</span>}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{phone || <span className="text-muted-foreground italic">Não informado</span>}</span>
+                        {phone && (
                           <button
                             type="button"
-                            onClick={() => { setPhoneValue(phone); setEditingPhone(true); }}
-                            className="ml-1 rounded p-0.5 text-muted-foreground opacity-0 hover:text-foreground group-hover:opacity-100 focus:opacity-100"
+                            onClick={copyPhone}
+                            title="Copiar telefone"
+                            className="rounded p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                           >
-                            <Pencil className="h-3 w-3" />
+                            <Copy className="h-3.5 w-3.5" />
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -354,7 +400,11 @@ export function LeadQuickView({
                 <InfoRow
                   icon={<span className="text-xs">🔗</span>}
                   label="Origem"
-                  value={SOURCE_LABEL[lead.source] ?? lead.source}
+                  value={
+                    lead.source === 'form' && formName
+                      ? `Formulário: ${formName}`
+                      : (SOURCE_LABEL[lead.source] ?? lead.source)
+                  }
                   className="px-3"
                 />
                 <InfoRow
@@ -368,15 +418,15 @@ export function LeadQuickView({
               {/* Responsible */}
               <SectionTitle>Responsável</SectionTitle>
               <div className="rounded-lg border bg-muted/20 px-3 py-2">
-                <Select value={lead.ownerId ?? 'none'} onValueChange={handleAssign}>
+                <Select value={displayOwnerId ?? 'none'} onValueChange={handleAssign}>
                   <SelectTrigger className="h-9 border-0 bg-transparent p-0 text-sm shadow-none focus:ring-0">
                     <div className="flex items-center gap-2">
-                      {lead.ownerName ? (
+                      {displayOwnerName ? (
                         <>
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand/20 text-[10px] font-bold text-brand">
-                            {lead.ownerName.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+                            {displayOwnerName.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()}
                           </span>
-                          <span>{lead.ownerName}</span>
+                          <span>{displayOwnerName}</span>
                         </>
                       ) : (
                         <span className="text-muted-foreground">Sem responsável — clique para atribuir</span>
@@ -392,53 +442,48 @@ export function LeadQuickView({
                 </Select>
               </div>
 
-              {/* Move stage */}
-              <SectionTitle>Mover para estágio</SectionTitle>
-              <div className="flex flex-wrap gap-1.5">
-                {(stages ?? []).map((s) => {
-                  const isCurrent = s.id === lead.stageId;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      disabled={isCurrent}
-                      onClick={() => handleMoveStage(s.id)}
-                      className={cn(
-                        'flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                        isCurrent
-                          ? 'cursor-default border-transparent text-white'
-                          : 'hover:opacity-90 border-transparent text-white/90',
-                      )}
-                      style={{ backgroundColor: isCurrent ? s.color : `${s.color}99` }}
-                    >
-                      {isCurrent && <CheckCircle2 className="h-3 w-3" />}
-                      {s.name}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Custom fields from form */}
+              {customEntries.length > 0 && (
+                <>
+                  <SectionTitle>Campos adicionais</SectionTitle>
+                  <div className="divide-y divide-border/50 rounded-lg border bg-muted/20">
+                    {customEntries.map(([key, value]) => {
+                      const fieldType = fieldTypes?.[key];
+                      let displayValue: React.ReactNode;
+                      if (Array.isArray(value)) {
+                        displayValue = value.join(', ') || '—';
+                      } else if (fieldType === 'currency' && typeof value === 'number') {
+                        displayValue = (
+                          <span className="font-semibold text-brand">
+                            {value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </span>
+                        );
+                      } else if (value === true) {
+                        displayValue = '✓ Sim';
+                      } else if (value === false || value === null || value === undefined) {
+                        displayValue = '—';
+                      } else {
+                        displayValue = String(value);
+                      }
+                      return (
+                        <InfoRow
+                          key={key}
+                          icon={<span className="h-3.5 w-3.5" />}
+                          label={key}
+                          value={displayValue}
+                          className="px-3"
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
               {/* Description */}
               {typeof description === 'string' && description && (
                 <>
                   <SectionTitle>Observações</SectionTitle>
                   <p className="rounded-lg border bg-muted/20 px-3 py-2.5 text-sm text-muted-foreground">{description}</p>
-                </>
-              )}
-
-              {/* Custom tags */}
-              {customEntries.length > 0 && (
-                <>
-                  <SectionTitle>Campos adicionais</SectionTitle>
-                  <div className="flex flex-wrap gap-1.5">
-                    {customEntries.flatMap(([key, value]) =>
-                      (Array.isArray(value) ? value : [value]).map((v, i) => (
-                        <span key={`${key}-${i}`} className="rounded-full border bg-brand/10 px-2.5 py-0.5 text-xs text-foreground">
-                          {String(v === true ? key : v)}
-                        </span>
-                      )),
-                    )}
-                  </div>
                 </>
               )}
 

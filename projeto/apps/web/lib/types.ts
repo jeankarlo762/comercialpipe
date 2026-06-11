@@ -162,6 +162,7 @@ export interface FormItem {
   fields: FormFieldDef[];
   isActive: boolean;
   submissionsCount: number;
+  targetStageId: string | null;
   createdAt: string;
 }
 

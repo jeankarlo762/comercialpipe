@@ -401,6 +401,7 @@ export const forms = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     submissionsCount: integer('submissions_count').notNull().default(0),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    targetStageId: uuid('target_stage_id').references(() => pipelineStages.id, { onDelete: 'set null' }),
     ...timestamps,
   },
   (t) => [index('forms_tenant_idx').on(t.tenantId)],
