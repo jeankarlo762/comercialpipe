@@ -30,7 +30,6 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email().toLowerCase(),
-  slug: z.string().min(3).max(60).regex(slugRegex),
 });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 

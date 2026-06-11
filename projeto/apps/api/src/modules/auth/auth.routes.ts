@@ -11,6 +11,7 @@ import { sendOk } from '../../shared/http/response.js';
 import { UnauthorizedError } from '../../shared/errors/app-error.js';
 import { authenticate } from '../../shared/middleware/auth.middleware.js';
 import { requireAuth } from '../../shared/http/context.js';
+import { sendPasswordResetEmail } from '../../shared/email/email.service.js';
 import {
   confirmPasswordReset,
   createPasswordReset,
@@ -95,12 +96,17 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
   app.post('/forgot-password', async (request, reply) => {
     const input = parseOrThrow(forgotPasswordSchema, request.body);
-    const token = await createPasswordReset(input.email, input.slug);
+    const result = await createPasswordReset(input.email);
     const payload: { message: string; resetToken?: string } = {
       message: 'Se o e-mail existir, um link de redefinição será enviado.',
     };
-    if (token && env.NODE_ENV !== 'production') {
-      payload.resetToken = token;
+    if (result) {
+      await sendPasswordResetEmail(result.userEmail, result.token).catch((err) =>
+        console.error('[email] failed to send reset email:', err),
+      );
+      if (env.NODE_ENV !== 'production') {
+        payload.resetToken = result.token;
+      }
     }
     return sendOk(reply, payload);
   });

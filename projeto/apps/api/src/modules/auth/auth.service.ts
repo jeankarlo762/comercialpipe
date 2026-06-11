@@ -214,12 +214,11 @@ export async function revokeRefreshToken(rawToken: string): Promise<void> {
     .where(eq(refreshTokens.tokenHash, tokenHash));
 }
 
-export async function createPasswordReset(email: string, slug: string): Promise<string | null> {
+export async function createPasswordReset(email: string): Promise<{ token: string; userEmail: string } | null> {
   const [user] = await db
-    .select({ id: users.id })
+    .select({ id: users.id, email: users.email })
     .from(users)
-    .innerJoin(tenants, eq(users.tenantId, tenants.id))
-    .where(and(eq(users.email, email), eq(tenants.slug, slug)))
+    .where(eq(users.email, email))
     .limit(1);
 
   if (!user) return null;
@@ -231,7 +230,7 @@ export async function createPasswordReset(email: string, slug: string): Promise<
     tokenHash: sha256Hex(raw),
     expiresAt,
   });
-  return raw;
+  return { token: raw, userEmail: user.email };
 }
 
 export async function confirmPasswordReset(input: ResetPasswordInput): Promise<void> {

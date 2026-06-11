@@ -39,6 +39,11 @@ const envSchema = z.object({
   API_HOST: z.string().default('0.0.0.0'),
   API_PORT: z.coerce.number().int().default(3001),
   WEB_ORIGIN: z.string().default('http://localhost:3000'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('no-reply@commercialpipe.com'),
   COOKIE_DOMAIN: z.string().default('localhost'),
   COOKIE_SECURE: z
     .enum(['true', 'false'])
