@@ -1,7 +1,3 @@
-// Queue stubs — BullMQ is only loaded in the worker process (worker-entry.ts).
-// When Redis is unavailable the main API process uses these no-op stubs so
-// authentication, pipeline and all other routes continue to work normally.
-
 export const QUEUE_NAMES = {
   aiScoring: 'ai-scoring',
   automation: 'automation-engine',
@@ -35,18 +31,21 @@ export interface OutboundWebhookJob {
   tenantId: string;
 }
 
-function noop(queueName: string) {
+interface SimpleQueue<T> {
+  add(name: string, data: T): Promise<unknown>;
+}
+
+function noopQueue<T>(queueName: string): SimpleQueue<T> {
   return {
-    add: async (_name: string, _data: unknown) => {
+    add: async (_name: string, _data: T) => {
       console.debug(`[queue] Redis unavailable — skipped job on "${queueName}"`);
     },
   };
 }
 
-// Lazy real queues — only instantiated when Redis is available
-async function tryRealQueue<T>(name: string) {
+async function tryRealQueue<T>(name: string): Promise<SimpleQueue<T>> {
   const { redisAvailable, bullConnection } = await import('../redis/connection.js');
-  if (!redisAvailable) return noop(name);
+  if (!redisAvailable) return noopQueue<T>(name);
   const { Queue } = await import('bullmq');
   return new Queue<T>(name, {
     connection: bullConnection(),
@@ -56,16 +55,15 @@ async function tryRealQueue<T>(name: string) {
       removeOnComplete: { count: 1000 },
       removeOnFail: { count: 5000 },
     },
-  });
+  }) as unknown as SimpleQueue<T>;
 }
 
-// Proxy that defers real Queue creation until first use
-function lazyQueue<T>(name: string) {
-  let inner: { add: (...args: unknown[]) => Promise<unknown> } | null = null;
+function lazyQueue<T>(name: string): SimpleQueue<T> {
+  let inner: SimpleQueue<T> | undefined;
   return {
     add: async (jobName: string, data: T) => {
       if (!inner) inner = await tryRealQueue<T>(name);
-      return inner.add(jobName, data as never);
+      return inner.add(jobName, data);
     },
   };
 }
