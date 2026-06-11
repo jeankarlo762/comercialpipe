@@ -15,33 +15,22 @@ function loadEnv() {
 loadEnv();
 
 import postgres from 'postgres';
+import argon2 from 'argon2';
 import crypto from 'node:crypto';
-import { promisify } from 'node:util';
-import { scrypt, randomBytes } from 'node:crypto';
-
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password) {
-  const salt = randomBytes(16).toString('hex');
-  const derived = await scryptAsync(password, salt, 64);
-  return `${salt}:${derived.toString('hex')}`;
-}
 
 const sql = postgres(process.env.DATABASE_URL);
 
 const EMAIL = 'admin@crm.com';
 const PASSWORD = 'admincrm123';
-const TENANT_NAME = 'CRM Admin';
+const TENANT_NAME = 'CRM NX';
 const SLUG = 'crm';
 
 async function run() {
-  // Check if tenant slug exists
-  const existing = await sql`SELECT id FROM tenants WHERE slug = ${SLUG} LIMIT 1`;
-
   let tenantId;
+  const existing = await sql`SELECT id FROM tenants WHERE slug = ${SLUG} LIMIT 1`;
   if (existing.length > 0) {
     tenantId = existing[0].id;
-    console.log(`Tenant '${SLUG}' já existe, usando id: ${tenantId}`);
+    console.log(`Tenant '${SLUG}' já existe: ${tenantId}`);
   } else {
     const apiKey = crypto.randomBytes(32).toString('hex');
     const [tenant] = await sql`
@@ -53,18 +42,21 @@ async function run() {
     console.log(`Tenant criado: ${tenantId}`);
   }
 
-  // Check if user already exists
+  const passwordHash = await argon2.hash(PASSWORD, {
+    type: argon2.argon2id,
+    memoryCost: 19456,
+    timeCost: 2,
+    parallelism: 1,
+  });
+
   const existingUser = await sql`SELECT id FROM users WHERE email = ${EMAIL} LIMIT 1`;
   if (existingUser.length > 0) {
-    console.log(`Usuário ${EMAIL} já existe. Atualizando senha...`);
-    const passwordHash = await hashPassword(PASSWORD);
-    await sql`UPDATE users SET password_hash = ${passwordHash} WHERE email = ${EMAIL}`;
-    console.log('Senha atualizada com sucesso.');
+    await sql`UPDATE users SET password_hash = ${passwordHash}, tenant_id = ${tenantId}, role = 'admin', is_active = true WHERE email = ${EMAIL}`;
+    console.log(`Senha do usuário ${EMAIL} atualizada com argon2.`);
   } else {
-    const passwordHash = await hashPassword(PASSWORD);
     await sql`
-      INSERT INTO users (tenant_id, name, email, password_hash, role)
-      VALUES (${tenantId}, 'Admin CRM', ${EMAIL}, ${passwordHash}, 'admin')
+      INSERT INTO users (tenant_id, name, email, password_hash, role, is_active)
+      VALUES (${tenantId}, 'Admin CRM NX', ${EMAIL}, ${passwordHash}, 'admin', true)
     `;
     console.log(`Usuário criado: ${EMAIL}`);
   }

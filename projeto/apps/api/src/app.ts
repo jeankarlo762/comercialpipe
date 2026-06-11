@@ -7,7 +7,7 @@ import rateLimit from '@fastify/rate-limit';
 import { env } from './config/env.js';
 import { errorHandler } from './shared/http/error-handler.js';
 import { sendError } from './shared/http/response.js';
-import { redis } from './shared/redis/connection.js';
+import { redis, redisAvailable } from './shared/redis/connection.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { usersRoutes } from './modules/users/users.routes.js';
 import { tenantsRoutes } from './modules/tenants/tenants.routes.js';
@@ -64,7 +64,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     global: true,
     max: 100,
     timeWindow: '1 minute',
-    redis,
+    ...(redisAvailable ? { redis } : {}),
     keyGenerator: (request) => {
       const auth = request.headers.authorization;
       return auth ? `auth:${auth}` : `ip:${request.ip}`;
