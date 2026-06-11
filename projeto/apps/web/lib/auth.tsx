@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { useRouter } from 'next/navigation';
 import type { LoginInput, RegisterInput } from '@commercialpipe/shared-types';
-import { apiPost, setAccessToken, setUnauthorizedHandler } from './api';
+import { apiPost, apiRequest, setAccessToken, setUnauthorizedHandler } from './api';
 import type { User } from './types';
 
 interface AuthState {
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     async function bootstrap() {
       try {
-        const data = await apiPost<AuthResponse>('/auth/refresh');
+        const { data } = await apiRequest<AuthResponse>('/auth/refresh', { method: 'POST', skipAuthRetry: true });
         if (active) {
           setAccessToken(data.accessToken);
           setUser(data.user);
