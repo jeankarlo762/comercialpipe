@@ -403,6 +403,7 @@ function PipelineCard({ pipeline, onEdit }: { pipeline: Pipeline; onEdit: () => 
                           <div
                             ref={drag.innerRef}
                             {...drag.draggableProps}
+                            style={drag.draggableProps.style as React.CSSProperties}
                             className={`flex items-center gap-2 rounded-md border bg-background px-3 py-2 transition-shadow ${dragSnapshot.isDragging ? 'shadow-md ring-1 ring-primary/20' : ''}`}
                           >
                             <span

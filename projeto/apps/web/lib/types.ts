@@ -132,7 +132,7 @@ export interface Automation {
 export interface FormFieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'checkbox' | 'number';
+  type: 'text' | 'textarea' | 'checkbox' | 'number' | 'currency';
   required: boolean;
   options?: string[];
 }

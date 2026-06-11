@@ -291,6 +291,7 @@ export function KanbanBoard({ stages, pipelineId }: { stages: Stage[]; pipelineI
                     <div
                       ref={colProvided.innerRef}
                       {...colProvided.draggableProps}
+                      style={colProvided.draggableProps.style as React.CSSProperties}
                       className={cn(
                         'flex w-72 shrink-0 flex-col rounded-lg bg-muted/40 transition-shadow',
                         colSnapshot.isDragging && 'shadow-lg ring-1 ring-primary/30',
