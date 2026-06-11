@@ -205,7 +205,7 @@ export function FormBuilder() {
         description: description || null,
         fields: prepared,
         isActive: true,
-        targetStageId: targetStageId || null,
+        ...(targetStageId ? { targetStageId } : {}),
       });
       toast.success('Formulário criado — link gerado');
       setName('');

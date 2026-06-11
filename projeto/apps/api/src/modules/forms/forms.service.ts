@@ -36,7 +36,8 @@ export async function createForm(tenantId: string, createdBy: string, input: Cre
       fields: input.fields,
       isActive: input.isActive,
       publicId: generatePublicId(),
-      targetStageId: input.targetStageId ?? null,
+      // Only include targetStageId when it has a value — avoids SQL error if migration hasn't run yet
+      ...(input.targetStageId ? { targetStageId: input.targetStageId } : {}),
     })
     .returning();
   return form;
