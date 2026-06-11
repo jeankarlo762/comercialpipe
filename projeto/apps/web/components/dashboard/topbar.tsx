@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth';

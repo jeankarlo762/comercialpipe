@@ -1,4 +1,4 @@
-﻿import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { type FastifyInstance } from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';

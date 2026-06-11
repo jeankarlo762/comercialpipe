@@ -1,4 +1,4 @@
-﻿import { aliasedTable, and, asc, count, eq, gte, lte, type SQL } from 'drizzle-orm';
+import { aliasedTable, and, asc, count, eq, gte, lte, type SQL } from 'drizzle-orm';
 import type {
   CreateMeetingInput,
   ListMeetingsQuery,

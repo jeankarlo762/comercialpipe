@@ -1,4 +1,4 @@
-﻿import { and, count, desc, eq, gt, lte, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gt, lte, sql } from 'drizzle-orm';
 import type { AiOperation, PaginationQuery } from '@commercialpipe/shared-types';
 import { AI_CREDIT_COSTS } from '@commercialpipe/shared-types';
 import { db } from '../../shared/database/client.js';

@@ -1,4 +1,4 @@
-﻿import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { inboundLeadSchema, n8nCallbackSchema } from '@commercialpipe/shared-types';
 import { authenticateApiKey } from '../../shared/middleware/auth.middleware.js';
 import { parseOrThrow } from '../../shared/http/validate.js';

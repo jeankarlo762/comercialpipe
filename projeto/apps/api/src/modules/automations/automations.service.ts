@@ -1,4 +1,4 @@
-﻿import { and, count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 import type {
   CreateAutomationInput,
   PaginationQuery,

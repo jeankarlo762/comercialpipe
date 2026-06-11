@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit';
 
 const databaseUrl = process.env.DATABASE_URL ?? 'postgresql://pipe:pipe123@localhost:5432/CRM NX';
 

@@ -1,4 +1,4 @@
-﻿import { and, count, desc, eq, ilike } from 'drizzle-orm';
+import { and, count, desc, eq, ilike } from 'drizzle-orm';
 import type {
   CreateAccountInput,
   PaginationQuery,

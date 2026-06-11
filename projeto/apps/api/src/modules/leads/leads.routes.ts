@@ -1,4 +1,4 @@
-﻿import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import {
   buildPaginationMeta,
   createLeadSchema,

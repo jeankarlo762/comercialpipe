@@ -1,4 +1,4 @@
-﻿import { fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');

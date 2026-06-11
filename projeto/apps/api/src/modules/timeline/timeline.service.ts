@@ -1,4 +1,4 @@
-﻿import { and, asc, count, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq } from 'drizzle-orm';
 import type { ListTimelineQuery, TimelineType } from '@commercialpipe/shared-types';
 import { db, type Database } from '../../shared/database/client.js';
 import { leads, timelineEntries } from '../../shared/database/schema.js';

@@ -1,4 +1,4 @@
-﻿import { and, count, desc, eq, ilike, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, type SQL } from 'drizzle-orm';
 import type { CreateMessageTemplateInput, ListMessageTemplatesQuery, UpdateMessageTemplateInput } from '@commercialpipe/shared-types';
 import { db } from '../../shared/database/client.js';
 import { messageTemplates } from '../../shared/database/schema.js';

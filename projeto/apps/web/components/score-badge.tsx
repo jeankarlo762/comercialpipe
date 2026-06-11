@@ -1,4 +1,4 @@
-﻿import type { AiScore } from '@commercialpipe/shared-types';
+import type { AiScore } from '@commercialpipe/shared-types';
 import { cn } from '@/lib/utils';
 
 const SCORE_STYLES: Record<AiScore, string> = {

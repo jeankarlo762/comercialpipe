@@ -1,4 +1,4 @@
-﻿import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { n8nConfigSchema } from '@commercialpipe/shared-types';
 import { authenticate, requirePermission } from '../../shared/middleware/auth.middleware.js';

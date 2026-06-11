@@ -1,4 +1,4 @@
-﻿import { and, count, eq, gte, isNull, sql } from 'drizzle-orm';
+import { and, count, eq, gte, isNull, sql } from 'drizzle-orm';
 import {
   aiScoreResultSchema,
   emailDraftResultSchema,
