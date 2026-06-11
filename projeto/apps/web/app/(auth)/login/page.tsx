@@ -33,38 +33,110 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* Left panel — sales image */}
-      <div className="relative hidden w-1/2 overflow-hidden lg:block">
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-br from-amber-500/90 via-yellow-400/80 to-amber-600/90" />
+      {/* Left panel — sales illustration */}
+      <div className="relative hidden w-1/2 overflow-hidden bg-zinc-950 lg:flex lg:flex-col lg:justify-between lg:p-12">
+        {/* Subtle radial glow behind chart */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[420px] w-[420px] rounded-full bg-amber-400/10 blur-[80px]" />
+        </div>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="h-[260px] w-[260px] rounded-full bg-amber-300/8 blur-[40px]" />
+        </div>
 
-        {/* Background image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80&auto=format&fit=crop"
-          alt="Equipe de vendas"
-          className="h-full w-full object-cover"
-        />
-
-        {/* Content over image */}
-        <div className="absolute inset-0 z-20 flex flex-col justify-between p-12">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-              <BarChart3 className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-white drop-shadow">CommercialPipe</span>
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400/20 ring-1 ring-amber-400/30">
+            <BarChart3 className="h-5 w-5 text-amber-400" />
           </div>
+          <span className="text-2xl font-bold tracking-tight text-white">CommercialPipe</span>
+        </div>
 
-          {/* Bottom tagline */}
-          <div className="space-y-3">
-            <h2 className="text-3xl font-bold leading-tight text-white drop-shadow-md">
-              Gerencie seu funil.<br />Feche mais negócios.
-            </h2>
-            <p className="text-base text-white/90 drop-shadow">
-              A plataforma comercial que transforma leads em resultados.
-            </p>
-          </div>
+        {/* Growth chart SVG */}
+        <div className="relative z-10 flex flex-1 items-center justify-center">
+          <svg viewBox="0 0 400 320" className="w-[340px]" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="glow-amber" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="glow-soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <linearGradient id="bar1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.15" />
+              </linearGradient>
+              <linearGradient id="bar2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.65" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.18" />
+              </linearGradient>
+              <linearGradient id="bar3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fcd34d" stopOpacity="0.75" />
+                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.22" />
+              </linearGradient>
+              <linearGradient id="bar4" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#fde68a" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.28" />
+              </linearGradient>
+            </defs>
+
+            {/* Concentric circles (subtle) */}
+            <circle cx="200" cy="170" r="145" stroke="#fbbf24" strokeOpacity="0.06" strokeWidth="1" />
+            <circle cx="200" cy="170" r="108" stroke="#fbbf24" strokeOpacity="0.05" strokeWidth="1" />
+            <circle cx="200" cy="170" r="72" stroke="#fbbf24" strokeOpacity="0.04" strokeWidth="1" />
+
+            {/* Baseline */}
+            <line x1="60" y1="258" x2="340" y2="258" stroke="#fbbf24" strokeOpacity="0.12" strokeWidth="1" />
+
+            {/* Bar 1 */}
+            <rect x="80" y="218" width="38" height="40" rx="4" fill="url(#bar1)" filter="url(#glow-soft)" />
+            <rect x="80" y="218" width="38" height="40" rx="4" stroke="#fbbf24" strokeOpacity="0.25" strokeWidth="1" />
+
+            {/* Bar 2 */}
+            <rect x="148" y="188" width="38" height="70" rx="4" fill="url(#bar2)" filter="url(#glow-soft)" />
+            <rect x="148" y="188" width="38" height="70" rx="4" stroke="#fbbf24" strokeOpacity="0.30" strokeWidth="1" />
+
+            {/* Bar 3 */}
+            <rect x="216" y="148" width="38" height="110" rx="4" fill="url(#bar3)" filter="url(#glow-soft)" />
+            <rect x="216" y="148" width="38" height="110" rx="4" stroke="#fbbf24" strokeOpacity="0.38" strokeWidth="1" />
+
+            {/* Bar 4 */}
+            <rect x="284" y="98" width="38" height="160" rx="4" fill="url(#bar4)" filter="url(#glow-soft)" />
+            <rect x="284" y="98" width="38" height="160" rx="4" stroke="#fde68a" strokeOpacity="0.5" strokeWidth="1" />
+
+            {/* Growth curve */}
+            <path
+              d="M 80 230 C 120 210, 148 195, 185 170 C 222 145, 250 120, 303 72"
+              stroke="#fde68a"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              filter="url(#glow-amber)"
+              opacity="0.9"
+            />
+
+            {/* Arrow head */}
+            <path
+              d="M 295 60 L 316 68 L 304 82"
+              stroke="#fde68a"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              filter="url(#glow-amber)"
+              opacity="0.9"
+            />
+          </svg>
+        </div>
+
+        {/* Bottom tagline */}
+        <div className="relative z-10 space-y-2">
+          <h2 className="text-2xl font-bold leading-tight text-white">
+            Gerencie seu funil.<br />
+            <span className="text-amber-400">Feche mais negócios.</span>
+          </h2>
+          <p className="text-sm text-zinc-400">
+            A plataforma comercial que transforma leads em resultados.
+          </p>
         </div>
       </div>
 
