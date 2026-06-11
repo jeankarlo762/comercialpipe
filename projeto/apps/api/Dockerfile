@@ -19,6 +19,7 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages/shared-types ./packages/shared-types
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
+COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
 WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "node dist/shared/database/migrate.js && node dist/server.js"]
