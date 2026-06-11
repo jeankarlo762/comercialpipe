@@ -33,45 +33,46 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* Left panel — branding */}
-      <div className="hidden w-1/2 flex-col justify-between bg-zinc-950 p-12 lg:flex">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500">
-            <BarChart3 className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">CommercialPipe</span>
-        </div>
+      {/* Left panel — sales image */}
+      <div className="relative hidden w-1/2 overflow-hidden lg:block">
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-br from-amber-500/90 via-yellow-400/80 to-amber-600/90" />
 
-        <div className="space-y-6">
-          <blockquote className="space-y-3">
-            <p className="text-2xl font-medium leading-snug text-white">
-              "Centralizar nosso processo comercial no CommercialPipe transformou a produtividade do time de vendas."
+        {/* Background image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80&auto=format&fit=crop"
+          alt="Equipe de vendas"
+          className="h-full w-full object-cover"
+        />
+
+        {/* Content over image */}
+        <div className="absolute inset-0 z-20 flex flex-col justify-between p-12">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+              <BarChart3 className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-white drop-shadow">CommercialPipe</span>
+          </div>
+
+          {/* Bottom tagline */}
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold leading-tight text-white drop-shadow-md">
+              Gerencie seu funil.<br />Feche mais negócios.
+            </h2>
+            <p className="text-base text-white/90 drop-shadow">
+              A plataforma comercial que transforma leads em resultados.
             </p>
-            <footer className="text-sm text-zinc-400">— Diretor Comercial</footer>
-          </blockquote>
-
-          <div className="grid grid-cols-3 gap-4 pt-4">
-            {[
-              { label: 'Leads gerenciados', value: '12k+' },
-              { label: 'Taxa de conversão', value: '38%' },
-              { label: 'Times ativos', value: '200+' },
-            ].map((s) => (
-              <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                <p className="text-2xl font-bold text-white">{s.value}</p>
-                <p className="mt-0.5 text-xs text-zinc-400">{s.label}</p>
-              </div>
-            ))}
           </div>
         </div>
-
-        <p className="text-xs text-zinc-600">© {new Date().getFullYear()} CommercialPipe. Todos os direitos reservados.</p>
       </div>
 
       {/* Right panel — form */}
       <div className="flex w-full flex-col items-center justify-center bg-white px-6 py-12 lg:w-1/2 dark:bg-zinc-900">
         {/* Mobile logo */}
         <div className="mb-8 flex items-center gap-3 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400">
             <BarChart3 className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight">CommercialPipe</span>
@@ -98,7 +99,7 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="voce@empresa.com"
-                  className="h-11 pl-10"
+                  className="h-11 pl-10 focus-visible:ring-amber-400"
                 />
               </div>
             </div>
@@ -117,14 +118,14 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="••••••••"
-                  className="h-11 pl-10"
+                  className="h-11 pl-10 focus-visible:ring-amber-400"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="h-11 w-full gap-2 bg-indigo-600 text-sm font-semibold hover:bg-indigo-700"
+              className="h-11 w-full gap-2 bg-amber-400 text-sm font-semibold text-zinc-900 hover:bg-amber-500"
               disabled={loading}
             >
               {loading ? (
@@ -144,7 +145,10 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm">
-            <Link href="/forgot-password" className="text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400">
+            <Link
+              href="/forgot-password"
+              className="text-zinc-500 hover:text-amber-600 dark:text-zinc-400 dark:hover:text-amber-400"
+            >
               Esqueci minha senha
             </Link>
           </p>
