@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { label: 'Início', href: '#' },
   { label: 'Sobre nós', href: '#sobre' },
   { label: 'Clientes', href: '#clientes' },
-  { label: 'MT Quadras', href: '#funcionalidades' },
+  { label: 'ArenaHub', href: '#funcionalidades' },
   { label: 'FAQ', href: '#faq' },
 ];
 

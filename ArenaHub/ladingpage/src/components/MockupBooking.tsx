@@ -34,7 +34,7 @@ export default function MockupBooking() {
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between" style={{ background: '#131416' }}>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[#F2B705] font-black italic" style={{ fontFamily: '"Archivo", sans-serif' }}>MT</span>
+          <span className="text-[10px] text-[#F2B705] font-black italic" style={{ fontFamily: '"Archivo", sans-serif' }}>MK</span>
           <span className="text-xs text-white/50">· reservas</span>
         </div>
         <span className="text-[10px] text-white/30" style={{ fontFamily: '"JetBrains Mono", monospace' }}>Sábado, 28 Jun</span>

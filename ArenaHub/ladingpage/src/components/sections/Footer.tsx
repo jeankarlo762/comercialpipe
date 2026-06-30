@@ -25,13 +25,13 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <Logo size="md" />
             <p className="text-white/40 text-sm leading-relaxed max-w-xs">
-              MT Quadras é um produto da May Tecnologia — sistemas que funcionam, sem enrolação.
+              ArenaHub é um produto da MK Sistemas — sistemas que funcionam, sem enrolação.
             </p>
             <span
               className="text-[10px] text-white/25 uppercase tracking-widest"
               style={{ fontFamily: '"JetBrains Mono", monospace' }}
             >
-              MT Quadras — um produto May Tecnologia
+              ArenaHub — um produto MK Sistemas
             </span>
           </div>
 
@@ -85,12 +85,12 @@ export default function Footer() {
 
         <div className="border-t border-white/8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-white/25">
-            © {year} May Tecnologia. Todos os direitos reservados.
+            © {year} MK Sistemas. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-1 text-xs text-white/20">
             <span>Feito com</span>
             <span className="text-[#F2B705]">♥</span>
-            <span>pela May Tecnologia</span>
+            <span>pela MK Sistemas</span>
           </div>
         </div>
       </div>

@@ -26,13 +26,13 @@ export default function About() {
               style={{ fontFamily: '"Archivo", sans-serif', letterSpacing: '-0.03em' }}
             >
               Sobre a<br />
-              <span className="text-[#F2B705]">May Tecnologia</span>
+              <span className="text-[#F2B705]">MK Sistemas</span>
             </h2>
           </AnimatedSection>
 
           <AnimatedSection delay={0.2}>
             <p className="text-white/60 text-base leading-relaxed mb-6">
-              A May Tecnologia desenvolve sistemas e produtos de software com foco em resolver problemas reais de quem opera negócios. O MT Quadras é um dos nossos produtos — construído ouvindo donos de arena e refinado com uso no dia a dia.
+              A MK Sistemas desenvolve sistemas e produtos de software com foco em resolver problemas reais de quem opera negócios. O ArenaHub é um dos nossos produtos — construído ouvindo donos de arena e refinado com uso no dia a dia.
             </p>
             <p className="text-white/50 text-base leading-relaxed mb-8">
               Acreditamos que tecnologia boa não precisa ser complicada. Precisa funcionar.
@@ -46,7 +46,7 @@ export default function About() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-[#F2B705] hover:text-[#DEB966] transition-colors"
             >
-              Conheça a May Tecnologia
+              Conheça a MK Sistemas
               <ArrowRight size={14} />
             </a>
           </AnimatedSection>

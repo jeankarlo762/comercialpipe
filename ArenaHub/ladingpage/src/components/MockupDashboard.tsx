@@ -36,7 +36,7 @@ export default function MockupDashboard() {
           <div className="w-3 h-3 rounded-full bg-white/10" />
         </div>
         <span className="text-xs text-white/30 mx-auto" style={{ fontFamily: '"JetBrains Mono", monospace' }}>
-          mt-quadras · painel
+          arenahub · painel
         </span>
       </div>
 

@@ -1,5 +1,5 @@
 // ============================================================
-// MT Quadras — Conteúdo centralizado
+// ArenaHub — Conteúdo centralizado
 // Edite aqui para atualizar textos, placeholders e dados.
 // ============================================================
 
@@ -7,7 +7,7 @@ export const LINKS = {
   whatsapp: 'https://wa.me/5511939404620',
   form: '[URL_DO_FORM]',
   companySite: '[URL_SITE_EMPRESA]',
-  contact: 'contato@maytecnologia.com',
+  contact: 'contato@mksistemas.com.br',
   instagram: '@maytecnologia.app',
 };
 
@@ -140,7 +140,7 @@ export const TESTIMONIALS = [
 export const FAQ_ITEMS = [
   {
     question: 'Precisa instalar algum aplicativo?',
-    answer: 'Não. O MT Quadras roda 100% no navegador — tanto para você no painel quanto para seus clientes na hora de reservar. Sem download, sem instalação.',
+    answer: 'Não. O ArenaHub roda 100% no navegador — tanto para você no painel quanto para seus clientes na hora de reservar. Sem download, sem instalação.',
   },
   {
     question: 'Funciona no celular?',
